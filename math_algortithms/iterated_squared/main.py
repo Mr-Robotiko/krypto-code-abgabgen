@@ -8,7 +8,7 @@ def iterated_squares(basis: int, power: int, mod: int):
             x = y
         else:
             x = y * basis % mod
-    print(f"{basis}^{power} = {x} mod {mod}")
+    return x
 
 
 def main():
@@ -16,10 +16,12 @@ def main():
     while check:
         basis: int = int(input("Was ist die Basis:\t"))
         power: int = int(input("Was ist die Potenz:\t"))
-        mod: int = int(input("Was ist das modulo:\t"))
+        mod: int = int(input("Was ist das Modulo:\t"))
 
         print(f"Löse: {basis}^{power} = x mod {mod}\t")
-        iterated_squares(basis, power, mod)
+        x: int = iterated_squares(basis, power, mod)
+
+        print(f"{basis}^{power} = {x} mod {mod}")
 
 
 if __name__ == '__main__':
