@@ -1,14 +1,13 @@
+def square_and_multiply(base: int, exponent: int, mod: int) -> int:
+    if exponent == 0:
+        return 1
 
-def iterated_squares(basis: int, power: int, mod: int):
-    binary_power: bin = bin(power)[2:]
-    x: int = basis
-    for i in range(len(binary_power)):
-        y: int = x**2 % mod
-        if binary_power[i] == 0:
-            x = y
-        else:
-            x = y * basis % mod
-    return x
+    if exponent % 2 == 0:
+        half = square_and_multiply(base, exponent // 2, mod)
+        return (half * half) % mod
+
+    else:
+        return (base * square_and_multiply(base, exponent - 1, mod)) % mod
 
 
 def main():
@@ -19,7 +18,7 @@ def main():
         mod: int = int(input("Was ist das Modulo:\t"))
 
         print(f"Löse: {basis}^{power} = x mod {mod}\t")
-        x: int = iterated_squares(basis, power, mod)
+        x: int = square_and_multiply(basis, power, mod)
 
         print(f"{basis}^{power} = {x} mod {mod}")
 
