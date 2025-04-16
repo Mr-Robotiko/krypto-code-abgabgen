@@ -1,6 +1,3 @@
-from typing import List
-
-
 class AuthenticationFunction:
     def __init__(self, n: int = 17):
         self.initial_state: int = 0x524f464c
