@@ -37,4 +37,4 @@ class AuthenticationFunction:
 
 if __name__ == '__main__':
     auth = AuthenticationFunction()
-    print(hex(auth.H("ABCDEFGHI")))
+    print(hex(auth.H("ABCDE")))
