@@ -1,88 +1,98 @@
-import random
-import string
-from typing import Tuple, List
+from typing import List
 
 from authentification_function import AuthenticationFunction
 
 
 class ExtensionAttack(AuthenticationFunction):
-    def __init__(self, known_mac: Tuple, key_length: int = 16):
+    def __init__(self, known_mic: int, known_message: str, key_length: int = 16) -> None:
         super().__init__()
+        self.known_mic: int = known_mic
+        self.known_message: str = known_message
         self.key_length: int = key_length
-        self.known_mac: Tuple[bytes, int] = known_mac
+        self.initial_state = self.recover_state()
+        # Der letzte Zustand der MIC wird näherungsweise bestimmt und überschreibt den Initialzustand S_0
+        # S_0 entspricht S_n (letzter Zustand von MIC)
 
-    def generate_random_extension(self, length: int = 6) -> bytes:
+    def generate_sn(self, start_bit) -> int:
         '''
-        Generiere eine zufällig Extension für den Angriff mit der Länge 6
-        :param length:
+        Generiere den internen Zustand sn basierend auf der MIC und dem Startbit.
+        :param start_bit: Testet 0 und 1
         :return:
         '''
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=length)).encode("utf-8")
-
-    def pad_message(self, total_len: int) -> bytes:
-        '''
-        Berechnet die Padding Länge für die gegebene Nachricht und gibt die Anzahl der 0xff zurück,
-        um die vollen vier Bytes aufzufüllen
-        :param total_len:
-        :return:
-        '''
-        pad_len: int = (4 - (total_len % 4))
-        return b'\xff' * pad_len
-
-    def to_block(self, data: bytes) -> list[int]:
-        '''
-        Erzeugt auf Basis der Extension die dazugehörigen Blöcke und vervollständigt diese
-        :param data:
-        :return:
-        '''
-        blocks = list()
+        bin_mic: bin = bin(self.known_mic)[2:].zfill(32)
+        bitblock: List[int] = [start_bit] + [0] * 31
         i: int = 0
-        while i + 4 <= len(data): # Alle vier Byte Blöcke werden direkt umgewandelt
-            blocks.append(int.from_bytes(data[i:i + 4], byteorder='big'))
+        for _ in range(32):
+            next_index = (i + 17) % 32
+            # Da es sich um eine Rotation handelt, ist es der Körper F_32, welcher Zyklich ist.
+            # Dementsprechend wird immer um 17 Positionen gesprungen und differenziert nach 0 und 1
+            if bin_mic[i] == "1":
+                bitblock[next_index] = (bitblock[i] + 1) % 2
+                # Wenn es eine 1 ist, so wird das Bit invertiert 0 -> 1, 1 -> 0
+            else:
+                bitblock[next_index] = bitblock[i]
+                # Wenn es eine 0 ist, wird das Bit übernommen
+            i = next_index # Fahre mit dem neuen Index fort
+        sn_bin = ''.join(str(b) for b in bitblock)
+        return int(sn_bin, 2)
+
+    def recover_state(self) -> int:
+        '''
+        Versuche beide Startbits und berechne den Zustand sn näherungsweise.
+        :return: Gefundener Zustand S_n
+        '''
+        candidates: List[int] = [self.generate_sn(0), self.generate_sn(1)]
+        for c in candidates:
+            if self.Q(c) == self.known_mic: # Prüft, ob einer der beiden der bekannten MIC entspricht.
+                return c
+        raise ValueError("Kein gültiger Zustand sn gefunden")
+
+    def extension_attack(self, extension: str) -> int:
+        '''
+        Generiere den gefälschten MIC, indem die Erweiterung nach dem Padding verarbeitet wird.
+        :param extension: Die Extension die angefügt werden soll.
+        :return: den neuen MIC
+        '''
+        # Um die Nachricht der MIC zu manipulieren, muss der Padding der Originalnachricht berechnet werden
+        original_len: int = self.key_length + len(self.known_message)
+        padding_len: int = (4 - (original_len % 4)) % 4
+        padding: bytes = b'\xff' * padding_len
+
+        # Schließlich kann die Verarbeitung der Extension simuliert werden auf Basis des Padding
+        ext_bytes: bytes = padding + extension.encode("utf-8")
+        if len(ext_bytes) % 4 != 0:
+            ext_bytes += b'\xff' * (4 - len(ext_bytes) % 4)
+
+        i = 0
+        # Zuletzt wird der Block mit dem letzten Zustand verarbeitet als wäre die Nachricht noch nicht final
+        # Der berechnete Initalzustand am Anfang beinhaltet alle Zwischenschritte der Originalnachricht.
+        while i < len(ext_bytes):
+            block = int.from_bytes(ext_bytes[i:i + 4], byteorder="big")
+            self.initial_state = self.update(self.initial_state, block)
             i += 4
-        if i < len(data): # Alle Bytes, die übrig bleiben, werden mit 0xff aufgegüllt
-            remaining: bytes = data[i:]
-            pad: bytes = remaining + b'\xff' * (4 - len(remaining))
-            blocks.append(int.from_bytes(pad, byteorder='big'))
-        return blocks
 
-    def attack(self):
-        known_msg, known_mac = self.known_mac
-        extension: bytes = self.generate_random_extension()
-
-        original_len: int = self.key_length + len(known_msg)
-        padded_msg: bytes = known_msg + self.pad_message(original_len) # Padding wird an der Nachricht angehangen
-        new_message: bytes = padded_msg + extension # m || padding || extension
-
-        # Berechnet die MIC auf Basis der zuvor durchgeführten Manipulation
-        state: int = known_mac
-        for block in self.to_block(extension):
-            state = self.update(state, block)
-
-        new_mac: int = self.Q(state)
-
-        print("=== Extension-Angriff ===")
-        print(f"Benutzte bekannte Nachricht:  {known_msg}")
-        print(f"Bekannter MIC:                {hex(known_mac)}")
-        print(f"Erzeugte Extension:           {extension}")
-        print(f"Gefälschte Nachricht:         {new_message}")
-        print(f"Neuer gültiger MIC:           {hex(new_mac)}\n")
-        return new_message, new_mac
+        # Nun wird die gültige MIC erzeugt, die durch den Unittest validiert wird.
+        return self.Q(self.initial_state)
 
 
-if __name__ == "__main__":
-    attack_sequence: List[ExtensionAttack] = list()
+def main() -> None:
+    '''
+    Hier können Sie eigene Extensions and die Nachricht "abcd" mit der MIC 0x632e4e5c anfügen.
+    Sie können auch "ef" mit 0x0f6b8802 testen oder "efghijk" mit 0x2638a819 testen.
+    Speziell gebe ich Ihnen die Nachricht "enigma" mit der MIC 0x5e535a7a.
+    Unter test_task_2_2.py finden Sie auch die Unittests für die ersten beiden Testvektoren.
+    :return: None
+    '''
+    while True:
+        extension: str = input("Welche Nachricht soll angehangen werden? (ENTER für Verlassen)\t")
+        if extension == "":
+            break
+        attack: ExtensionAttack = ExtensionAttack(0x632e4e5c, "abcd")
+        fake_mic: int = attack.extension_attack(extension)
+        print("Gefälschte Nachricht:", attack.known_message + extension)
+        print("Gefälschter MIC:     ", hex(fake_mic))
+        print("===============================================")
 
-    attack1 = ExtensionAttack((b'abcd', 0x632e4e5c))
-    attack_sequence.append(attack1)
-    attack2 = ExtensionAttack((b'abcdef', 0x0f6b8802))
-    attack_sequence.append(attack2)
-    attack3 = ExtensionAttack((b'abcdefghijk', 0x2638a819))
-    attack_sequence.append(attack3)
-    attack4 = ExtensionAttack((b'foobar', 0x782a826e))
-    attack_sequence.append(attack4)
-    attack5 = ExtensionAttack((b'barfoo', 0x885dc316))
-    attack_sequence.append(attack5)
 
-    for i in range(len(attack_sequence)):
-        attack_sequence[i].attack()
+if __name__ == '__main__':
+    main()
