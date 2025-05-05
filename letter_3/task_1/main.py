@@ -3,9 +3,9 @@ from typing import List, Tuple
 
 class Schiffy128:
 
-    def __init__(self):
+    def __init__(self, inital_key: int = 0xdeadbeef000000000000000badc0ffee):
         self.s0: int = 170
-        self.inital_key: int = 0xdeadbeef000000000000000badc0ffee
+        self.inital_key: int = inital_key
 
         # Deklariere die wichtigen Arrays (Listen)
         self.keys: List[int] = list() # Sammlung der Schlüsseln
