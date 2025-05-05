@@ -136,5 +136,5 @@ class Schiffy128:
 
 if __name__ == '__main__':
     schiffy: Schiffy128 = Schiffy128()
-    test = schiffy.round(0x0000000000000000)
+    test = schiffy.E(0x0000000000000000)
     print(hex(test))
