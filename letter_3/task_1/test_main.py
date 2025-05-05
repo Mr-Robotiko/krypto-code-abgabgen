@@ -1,4 +1,4 @@
-from main import Schiffy128
+from letter_3.task_1.main import Schiffy128
 import unittest
 
 
@@ -28,9 +28,6 @@ class TestSchiffy(unittest.TestCase):
         schiffy: Schiffy128 = Schiffy128()
         self.assertEqual(schiffy.keys[0], 0xdeadbeef000000000000000bad6b3201)
 
-    def test_zero_block(self):
-        schiffy: Schiffy128 = Schiffy128()
-
     def test_F1(self):
         schiffy: Schiffy128 = Schiffy128()
         self.assertEqual(schiffy.F(0x0000000000000000, schiffy.keys[0]), 0x94dfb49607c198ab)
@@ -58,6 +55,10 @@ class TestSchiffy(unittest.TestCase):
     def test_F7(self):
         schiffy: Schiffy128 = Schiffy128()
         self.assertEqual(schiffy.F(0xb743f2fb342c51bf, schiffy.keys[31]), 0x2a66d3471f7cb499)
+
+    def test_zero_block(self):
+        schiffy: Schiffy128 = Schiffy128()
+        self.assertEqual(schiffy.E(0x0000000000000000), 0xb743f2fb342c51bfab950797083f61e9)
 
 
 if __name__ == '__main__':
