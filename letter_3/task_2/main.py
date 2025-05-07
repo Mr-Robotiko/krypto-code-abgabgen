@@ -6,7 +6,6 @@ class Schiffy128CBC(Schiffy128):
         # Initalisiere Schiffy128 mit den Schlüssel Q. Encode die Nachricht und füge Padding hinzu -> vielfaches von 16 Bytes
         super().__init__(inital_key=0x08150000000000000000000000004711)
         self.message_bytes: bytes = message.encode("utf-8")
-        self.__add_padding()
 
         # Erstelle randomisierten IV und füge ihn den Ciphertext hinzu. Setze ihn als start Block für CBC
         self.iv: int = int.from_bytes(randbytes(16), byteorder="big")
@@ -16,14 +15,6 @@ class Schiffy128CBC(Schiffy128):
         # Verschlüssle die Nachricht und schreibe die Binary-Datei
         self.__encrypt()
         self.__write_out()
-
-    def __add_padding(self) -> None:
-        '''
-        Fügt das Padding an die Nachricht hinzu, um ein vielfaches von 16 Bytes zu erreichen
-        :return:
-        '''
-        padding_length: int = 16 - (len(self.message_bytes) % 16)
-        self.message_bytes += bytes([padding_length] * padding_length)
 
     def __encrypt(self) -> None:
         '''
@@ -50,4 +41,4 @@ class Schiffy128CBC(Schiffy128):
 
 
 if __name__ == '__main__':
-    test = Schiffy128CBC("https://tinyurl.com/4h6tbznj") # Hier die Nachricht
+    test = Schiffy128CBC("URL:https://tinyurl.com/4h6tbznj") # Hier die Nachricht
