@@ -77,6 +77,7 @@ def main():
     print("======================================")
     print(f"Das Element 123 der S-Box:\t{s_123}")
     print(f"Das inverse Element von 123 in F_256:\t{s_123.inverse()}")
+    print(f"Probe:\t{s_123} * {s_123.inverse()} = {s_123 * s_123.inverse()}")
 
     mc_0, m_c1 = bes.mix_columns()
 
