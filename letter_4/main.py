@@ -72,7 +72,7 @@ def main():
     bes: BES = BES(0xa3caab05)
     s_123: BESField = bes.s_box[123]
 
-    # Task 2: Inverse of 123:
+    # Task 2: Inverse of 123: -> 0xe2
     print("\nAufgabe 2: Fine das Inverse von S_123:")
     print("======================================")
     print(f"Das Element 123 der S-Box:\t{s_123}")
@@ -82,6 +82,8 @@ def main():
     mc_0, m_c1 = bes.mix_columns()
 
     # Task 3: Calculate MixColumns
+    # MC_0 = 0xde 0xad
+    # MC_1 = 0xaf 0xfe
     print("\nAufgabe 3: Führe die Berechnung von 0xa3caab05 aus:")
     print("======================================")
     print(f"Mc_0 =\t{mc_0}\nMc_1 =\t{m_c1}")
