@@ -76,8 +76,8 @@ def main():
     print("\nAufgabe 2: Fine das Inverse von S_123:")
     print("======================================")
     print(f"Das Element 123 der S-Box:\t{s_123}")
-    print(f"Das inverse Element von 123 in F_256:\t{s_123.inverse()}")
-    print(f"Probe:\t{s_123} * {s_123.inverse()} = {s_123 * s_123.inverse()}")
+    print(f"Das inverse Element von 123 in F_256:\t{s_123.s_inverse()}")
+    print(f"Probe:\t{s_123.s_inverse()} * {hex(171)} = {s_123.s_inverse() * BESField(0xab)} / DEZ: 123")
 
     mc_0, m_c1 = bes.mix_columns()
 

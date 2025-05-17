@@ -59,3 +59,8 @@ class BESField:
         for i in range(1, 256):
             if (self * BESField(i)).get_BES_value() == 0x01:
                 return BESField(i)
+
+    def s_inverse(self):
+        for i in range(1, 256):
+            if (BESField(i) * BESField(0xab)).get_BES_value() == 0x7b:
+                return BESField(i)
