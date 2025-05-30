@@ -91,6 +91,7 @@ if __name__ == '__main__':
     n, e = ke.get_pub_key()
     # n = 150839541704711705399833891655541134144247544382062409409873615806107544852523205080275346000475605503868604229395197305418019168120841383997137406019260313306039679217353390828185163729404259030990200848192468686344977784119981491143401636079622608668989441611436187644267238002002103040054685016141803528529
     # e = 65537
-    # Sie könenn auch ihren Public Key hinzufügen unter pubkey.txt
+    # Der pubkey.txt ist mein PublicKey, allerdings ist die ciphertext_bauer.bin die Nachricht mit ihrem PublicKey
+    # Die ciphertext.bin ist für die Komilitonen
     oaep = Oaep("Hypercube am Morgen vertreibt Kummer und Sorgen", n, e, 1024)
     oaep.write_out()
