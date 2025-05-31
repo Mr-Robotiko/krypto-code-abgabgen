@@ -1,10 +1,9 @@
 import base64
 import re
-from typing import Tuple, Dict
-
+from typing import Tuple
 
 class KeyEncoder:
-    def __init__(self, key_string: str) -> None:
+    def __init__(self, key_string: str):
         self._key_string: str = key_string
 
     def _clean_and_decode_key(self) -> bytes:
@@ -76,7 +75,7 @@ class KeyEncoder:
         offset += length
         return integer_value, offset
 
-    def get_pub_key(self) -> Dict[str, int]:
+    def get_pub_key(self) -> Tuple[int, int]:
         """
         Hier wird dann schließlich der Öffentliche Exponent und der Modulus getrennt und hier laufen alle zusammen
         :return:
@@ -99,7 +98,7 @@ class KeyEncoder:
 if __name__ == "__main__":
     with open("pubkey.txt", "r") as f:
         key_data: str = f.read()
-    # Der öffentliche Exponent und der Modulus wird extrahiert
+    # Der öffentliche Exponent und der Modulus werden extrahiert
     ke = KeyEncoder(key_data)
-    pub_key: Dict[str, int] = ke.get_pub_key()
+    pub_key: Tuple[int, int] = ke.get_pub_key()
     print(pub_key)

@@ -43,7 +43,7 @@ class Oaep:
         '''
         message_length: int = len(self.message_bytes)
         message_hash: bytes = self.hash_function(self.message_bytes).digest()
-        padding_length: int = self.rsa_key_length - message_length - 2 * self.hash_output_length - 2 # Formel aus Wikipedia
+        padding_length: int = self.rsa_key_length - message_length - 2*self.hash_output_length - 2 # Formel aus Wikipedia
 
         # Bauen das Datenblocks
         padding: bytes = b"\x00" * padding_length
@@ -53,7 +53,7 @@ class Oaep:
         msk_db: bytes = self.mgf1(seed, len(data_block))
         masked_db: bytes = bytes(x ^ y for x, y in zip(data_block, msk_db))
 
-        msk_seed: bytes = self.mgf1(masked_db, self.hash_output_length)
+        msk_seed: bytes = self.mgf1(masked_db, len(seed))
         masked_seed: bytes = bytes(x ^ y for x, y in zip(seed, msk_seed))
 
         encoded_message: bytes = b"\x00" + masked_seed + masked_db # Finale maskierte Nachricht
@@ -65,9 +65,11 @@ class Oaep:
         :return:
         '''
         encoded_message: bytes = self.encode_message()
+        print("Encoded message (OAEP padded):", encoded_message)
         plaintext: int = int.from_bytes(encoded_message, "big")
         ciphertext = pow(plaintext, self.e, self.n)
         ciphertext_bytes = ciphertext.to_bytes(self.rsa_key_length, "big")
+        print("Ciphertext (RSA encrypted):", ciphertext_bytes)
         return ciphertext_bytes
 
     def write_out(self, filename="ciphertext.bin"):
@@ -89,9 +91,6 @@ if __name__ == '__main__':
 
     ke = KeyEncoder(key_data)
     n, e = ke.get_pub_key()
-    # n = 150839541704711705399833891655541134144247544382062409409873615806107544852523205080275346000475605503868604229395197305418019168120841383997137406019260313306039679217353390828185163729404259030990200848192468686344977784119981491143401636079622608668989441611436187644267238002002103040054685016141803528529
-    # e = 65537
-    # Der pubkey.txt ist mein PublicKey, allerdings ist die ciphertext_bauer.bin die Nachricht mit ihrem PublicKey
-    # Die ciphertext.bin ist für die Komilitonen
-    oaep = Oaep("Hypercube am Morgen vertreibt Kummer und Sorgen", n, e, 1024)
+    # Der Schlüssel in pubkey.txt ist der öffentliche Schlüssel von Claas Wenk. Nicht ihrer.
+    oaep = Oaep("Hypercube am Morgen vertreibt Kummer und Sorgen! Dafür muss man gesund für sein!", n, e, 1024)
     oaep.write_out()
