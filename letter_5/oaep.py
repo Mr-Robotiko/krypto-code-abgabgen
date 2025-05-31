@@ -1,5 +1,6 @@
 import hashlib as h
 import os
+from encode_pubkey import KeyEncoder
 
 class Oaep:
     def __init__(self, message: str, n: int, e: int, rsa_key_length: int = 1024):
@@ -84,13 +85,11 @@ class Oaep:
 
 
 if __name__ == '__main__':
-    from encode_pubkey import KeyEncoder
-
     with open("pubkey.txt", "r") as f:
         key_data = f.read()
 
     ke = KeyEncoder(key_data)
-    n, e = ke.get_pub_key()
+    n, e = ke.get_pub_key() # Ließt den öffentlichen Exponenten und Modul ab
     # Der Schlüssel in pubkey.txt ist der öffentliche Schlüssel von Claas Wenk. Nicht ihrer.
     oaep = Oaep("Hypercube am Morgen vertreibt Kummer und Sorgen! Dafür muss man gesund für sein!", n, e, 1024)
     oaep.write_out()
