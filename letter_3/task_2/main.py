@@ -8,7 +8,7 @@ class Schiffy128CBC(Schiffy128):
         self.message_bytes: bytes = message.encode("utf-8")
 
         # Erstelle randomisierten IV und füge ihn den Ciphertext hinzu. Setze ihn als start Block für CBC
-        self.iv: int = int.from_bytes(randbytes(16), byteorder="big")
+        self.iv: int =0x18f1550eeef234985e1b0c16d027112e #int.from_bytes(randbytes(16), byteorder="big")
         self.ciphertext: bytes = self.iv.to_bytes(16, "big")
         self.previous_block: int = self.iv
 
@@ -41,7 +41,7 @@ class Schiffy128CBC(Schiffy128):
 
 
 if __name__ == '__main__':
-    test = Schiffy128CBC("URL:https://tinyurl.com/4h6tbznj") # Hier die Nachricht
+    test = Schiffy128CBC("A") # Hier die Nachricht
 
     #0x8f4c 1a2b 9d3e 7c04 56e1 b8da 3c9f 2e01 16 Byte IV
     #0x4bcf 13dc 85bc 022f 55e2 395a f5a6 ad1b 16 Byte

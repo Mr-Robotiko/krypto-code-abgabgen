@@ -72,7 +72,7 @@ def main():
     bes: BES = BES(0xa3caab05)
     s_123: BESField = bes.s_box[123]
 
-    # Task 2: Inverse of 123: -> 0xe2
+    # Task 2: Inverse of 123: -> 0x72
     print("\nAufgabe 2: Fine das Inverse von S_123:")
     print("======================================")
     print(f"Das Element 123 der S-Box:\t{s_123}")
