@@ -1,11 +1,20 @@
-from dataclasses import dataclass
-from .asn1 import Asn1
+import hashlib
+import random
+
+from curve import EllipticCurve
+from ec_point import ECPoint
 
 
-@dataclass
-class EcdsaSignature:
-    r: int
-    s: int
+class ECDSASigner:
 
-    def to_der(self) -> bytes:
-        return Asn1.encode_ecdsa_signature(self)
+    @staticmethod
+    def get_sig(curve: EllipticCurve, d: int, m: bytes):
+        e: str = hashlib.sha256(m).hexdigest()
+        e_int: int = int(e, 16)
+        k: int = random.randint(1, curve.n)
+        R: ECPoint = k * curve.G
+        k_inv: int = pow(k, -1, curve.n)
+        s: int = ((e_int + (R.x * d)) * k_inv) % curve.n
+
+        return s, R.x
+

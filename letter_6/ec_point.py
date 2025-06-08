@@ -1,49 +1,42 @@
-from __future__ import annotations
-
 
 class ECPoint:
     def __init__(self, x: int, y: int, curve):
-        self.x = x
-        self.y = y
+        self.x: int = x
+        self.y: int = y
         self.curve = curve
 
-    def __neg__(self) -> ECPoint:
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.curve == other.curve
+
+    def __rmul__(self, scalar: int):
+        return self * scalar
+
+    def __neg__(self):
         return ECPoint(self.x, (-self.y) % self.curve.p, self.curve)
 
-    def __add__(self, other: ECPoint) -> ECPoint:
-        # Unendlichkeitsbehandlung
-        if self.x is None or self.y is None:
-            return other
-        if other.x is None or other.y is None:
-            return self
+    def __add__(self, other):
+        # Q = (u.v)
+        if other == self:  # P + P = 2 * P Double
+            m: int = ((3 * (self.x**2) + self.curve.a) * self.curve.inverse(2 * self.y)) % self.curve.p  # (3*r^2+a) * (2*s)^-1
+            u: int = (m**2 - 2 * self.x) % self.curve.p  # (m^2 - 2 * r) mod p
+            v: int = (m * (u - self.x) + self.y) % self.curve.p  # m * (u - r) + s mod p
+        else:  # A + B
+            m: int = ((other.y - self.y) * self.curve.inverse(other.x - self.x)) % self.curve.p  # s2-s1 * (r2-r1)^-1 mod p
+            u: int = (m ** 2 - self.x - other.x) % self.curve.p  # m^2 - r1 - r2 mod p
+            v: int = (m * (u - self.x) + self.y) % self.curve.p  # m*(u-r1) + s1 mod p
 
-        if self == other:
-            # Punktverdopplung
-            if self.y == 0:
-                return self.curve.infinity()
-            m = ((3 * self.x ** 2 + self.curve.a) *
-                 self.curve.inverse(2 * self.y)) % self.curve.p
-        elif self.x == other.x:
-            return self.curve.infinity()  # P + (-P) = ∞
-        else:
-            # Punktaddition
-            m = ((other.y - self.y) *
-                 self.curve.inverse(other.x - self.x)) % self.curve.p
+        return ECPoint(u, -v % self.curve.p, self.curve)  # Q = (u, -v) mod p
 
-        x_r = (m * m - self.x - other.x) % self.curve.p
-        y_r = (m * (self.x - x_r) - self.y) % self.curve.p
-
-        return ECPoint(x_r, y_r, self.curve)
-
-    def __rmul__(self, k: int) -> ECPoint:
-        result = self.curve.infinity()
+    def __mul__(self, scalar: int):
+        result = None
         addend = self
 
-        while k:
-            if k & 1:
-                result = result + addend
+        while scalar > 0:
+            if scalar & 1:
+                result = addend if result is None else result + addend
             addend = addend + addend
-            k >>= 1
+            scalar >>= 1
+
         return result
 
     def __repr__(self):
