@@ -3,6 +3,9 @@ from typing import Dict
 
 
 class Initializer:
+    '''
+    All data is defined within the data directory. These are initialised here
+    '''
     def __init__(self, key_path: str = "data/keys.json", curve_path: str = "data/p-256_parameters.json"):
         self.key_path: str = key_path
         self.curve_path: str = curve_path
