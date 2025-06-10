@@ -23,17 +23,15 @@ def read_file(path: str) -> bytes:
     return content
 
 
-def attack(encoder: ASN1, curve: EllipticCurve):
-    m1 = read_file("packages/1/message1.bin")
-    m2 = read_file("packages/1/message2.bin")
-    sig1_bytes = read_file("packages/1/signature1.bin")
-    sig2_bytes = read_file("packages/1/signature2.bin")
+def attack(encoder: ASN1, curve: EllipticCurve, package: str):
+    m1 = read_file(f"packages/{package}/message1.bin")
+    m2 = read_file(f"packages/{package}/message2.bin")
+    sig1_bytes = read_file(f"packages/{package}/signature1.bin")
+    sig2_bytes = read_file(f"packages/{package}/signature2.bin")
 
-    # Signaturen dekodieren
     sig1 = encoder.decode_sig(sig1_bytes)
     sig2 = encoder.decode_sig(sig2_bytes)
 
-    # Privaten Schlüssel rekonstruieren
     d = ECDSASigner.recover_private_key(curve, m1, sig1, m2, sig2)
 
     # Privaten Schlüssel als Big-Endian bytes
@@ -67,9 +65,11 @@ def main():
         # Komme nicht darauf warum
         f.write(sig_encoded)
 
-    d, message = attack(encoder, curve)
+    d1, message1 = attack(encoder, curve, "1")
+    d2, message2 = attack(encoder, curve, "2")
     print("============ TASK 3 =================")
-    print(f"Private Key: {d}\nMessage: {message}")
+    print(f"Private Key: {d1}\nMessage: {message1}")
+    print(f"Private Key: {d2}\nMessage: {message2}")
 
 
 if __name__ == "__main__":
