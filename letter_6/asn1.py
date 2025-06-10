@@ -21,3 +21,14 @@ class ASN1:
         sequence = encoded_r + encoded_s
         encoded_sig = b"\x30" + len(sequence).to_bytes(1, byteorder = "big") + sequence
         return encoded_sig
+
+    def decode_sig(self, data: bytes) -> Tuple[int, int]:
+        pos: int = 2
+        r_len: int = data[pos + 1]
+        r_bytes: bytes = data[pos + 2: pos + 2 + r_len]
+        r: int = int.from_bytes(r_bytes, 'big')
+        pos = pos + 2 + r_len
+        s_len: int = data[pos + 1]
+        s_bytes: bytes = data[pos + 2: pos + 2 + s_len]
+        s: int = int.from_bytes(s_bytes, 'big')
+        return r, s
