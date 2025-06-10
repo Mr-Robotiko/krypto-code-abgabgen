@@ -1,5 +1,5 @@
 import hashlib
-import random
+import secrets
 
 from curve import EllipticCurve
 from ec_point import ECPoint
@@ -9,12 +9,11 @@ class ECDSASigner:
 
     @staticmethod
     def get_sig(curve: EllipticCurve, d: int, m: bytes):
-        e: str = hashlib.sha256(m).hexdigest()
-        e_int: int = int(e, 16)
-        k: int = random.randint(1, curve.n)
+        e: int = int(hashlib.sha256(m).hexdigest(), 16)
+        k: int = secrets.randbelow(curve.n - 1)
         R: ECPoint = k * curve.G
+        r: int = R.x % curve.n
         k_inv: int = pow(k, -1, curve.n)
-        s: int = ((e_int + (R.x * d)) * k_inv) % curve.n
-
-        return s, R.x
+        s: int = (k_inv * (e + r * d)) % curve.n
+        return r, s
 
